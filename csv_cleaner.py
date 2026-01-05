@@ -1,42 +1,42 @@
 import csv
 
-clean_rows = []
-removed_rows = 0
-final_rows = []
-
-with open("data/input.csv", newline="") as file:
-    reader = csv.DictReader(file)
-
-    for row in reader:
-        if row["name"] and row["age"] and row["score"]:
-            clean_rows.append(row)
-        else:
-            removed_rows += 1
-
-    for row in clean_rows:
+def load_data(path):
+    with open(path, newline="") as file:
+        reader = csv.DictReader(file)
+        return list(reader)
+    
+def clean_data(rows):
+    clean_rows = []
+    removed = 0
+    for row in rows:
         try:
-            row["age"] = int(row["age"])
-            row["score"] = int(row["score"])
-            final_rows.append(row)
+            if row["name"] and row["age"] and row["score"]:
+                row["age"] = int(row["age"])
+                row["score"] = int(row["score"])
+                clean_rows.append(row)
+            else:
+                removed += 1
         except ValueError:
-            removed_rows += 1
+            removed += 1
+    return clean_rows, removed
 
-with open("output/cleaned_output.csv", "w", newline="") as file:
-    writer = csv.DictWriter(file, fieldnames=clean_rows[0].keys())
-    writer.writeheader()
-    writer.writerows(clean_rows)
+def save_data(rows, path):
+    with open(path, "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
 
-print("Cleaned data saved to output/cleaned_output.csv")
+def print_summary(rows, removed):
+    scores = [row["score"] for row in rows]
+    print("\nSummary Report")
+    print("----------------")
+    print("Valid rows:", len(rows))
+    print("Rows removed:", removed)
+    print("Average score:", round(sum(scores) / len(scores), 2))
+    print("Highest score:", max(scores))
+    print("Lowest score:", min(scores))
 
-scores = [row["score"] for row in final_rows]
-
-average_score = sum(scores) / len(scores)
-highest_score = max(scores)
-lowest_score = min(scores)
-
-print("\nSummary Report")
-print("---------------")
-print("Rows processed:", len(final_rows))
-print("Average score:", round(average_score, 2))
-print("Highest score:", highest_score)
-print("Lowest score:", lowest_score)
+data = load_data("data/input.csv")
+clean_rows, removed = clean_data(data)
+save_data(clean_rows, "output/cleaned_output.csv")
+print_summary(clean_rows, removed)
